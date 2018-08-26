@@ -42,6 +42,7 @@ module.exports = (server) => {
         socket.on('add user', function (username) {
             if (addedUser) return;
 
+            console.log("added user");
             // we store the username in the socket session for this client
             socket.username = username;
             ++connectedUsers;
@@ -71,19 +72,5 @@ module.exports = (server) => {
                 username: socket.username
             });
         });
-
-        // when the user disconnects.. perform this
-        socket.on('disconnect', function () {
-            if (addedUser) {
-                --connectedUsers;
-
-                // echo globally that this client has left
-                socket.broadcast.emit('user left', {
-                    username: socket.username,
-                    connectedUsers: connectedUsers
-                });
-            }
-        });
-
     });
 };
