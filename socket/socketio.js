@@ -1,21 +1,21 @@
 var isTokenValid = (token) => {
 
-    //authenticate encryption or user record in database
+    //Վավերացնել token֊ը համաձայն ալգորթիմի
     return true;
 };
 
-/** Variables */
-var connectedUsers = 0;
+/** փոփոխականներ */
+let connectedUsers = 0;
 
 module.exports = (server) => {
 
-    console.log("start socket");
-
-    var io = require('socket.io')(server);
+    const io = require('socket.io')(server);
 
 
-    // middleware to verify on Connecting and Reconnecting
+    // middleware , որ «հաստատում է» միացումը և վերամիացումը
     io.use((socket, next) => {
+
+        //ստանում է token֊ը socket֊ի query֊ներից
         let token = socket.handshake.query.token;
 
         console.log("validation token");
@@ -25,58 +25,69 @@ module.exports = (server) => {
         return next(new Error('authentication error'));
     });
 
-    io.on('connection', function(socket) {
-        var addedUser = false;
+    //միացվել է
+    io.on('connection', function (socket) {
+        let addedUser = false;
 
-        // when the client emits 'new message', this listens and executes
-        socket.on('new message', function(data) {
-            // we tell the client to execute 'new message'
+        // երբ client֊ը «տարածում է» (emits) 'new message', աշխատում է ֆունկցիան
+        socket.on('new message', function (data) {
+
+            console.log("new message from " + socket.username + ": " + data);
+
+            // մենք տեղեկացնում ենք մնացած user-ներին, որ նոր հաղորդագրություն կա
             socket.broadcast.emit('new message', {
                 username: socket.username,
                 message: data
             });
         });
 
-        // when the client emits 'add user', this listens and executes
-        socket.on('add user', function(username) {
+        //երբ client֊ը «տարածում է» (emits) 'add user', աշխատում է ֆունկցիան
+        socket.on('add user', function (username) {
 
-            console.log(username);
             if (addedUser) return;
 
-            // we store the username in the socket session for this client
+            console.log("new user: " + username);
+
+            // մենք պահում ենք username֊ը socket֊ի «հիշողության» մեջ հերթական client֊ի
+
             socket.username = username;
             ++connectedUsers;
             addedUser = true;
             socket.emit('login', {
                 connectedUsers: connectedUsers
             });
-            // echo globally (all clients) that a person has connected
+
+            // բոլոր client-ներին բացի ընթացիկին, ասում ենք, որ նոր user է միացել chat֊ին
             socket.broadcast.emit('user joined', {
                 username: socket.username,
                 connectedUsers: connectedUsers
             });
         });
 
-        // when the client emits 'typing', we broadcast it to others
-        socket.on('typing', function() {
+
+        //երբ client֊ը «տարածում է» (emits) 'typing', աշխատում է ֆունկցիան
+        socket.on('typing', function () {
             socket.broadcast.emit('typing', {
                 username: socket.username
             });
         });
 
-        // when the client emits 'stop typing', we broadcast it to others
-        socket.on('stop typing', function() {
+
+        //երբ client֊ը «տարածում է» (emits) 'stop typing', աշխատում է ֆունկցիան
+        socket.on('stop typing', function () {
             socket.broadcast.emit('stop typing', {
                 username: socket.username
             });
         });
 
-        // when the user disconnects.. perform this
-        socket.on('disconnect', function() {
+        //երբ client֊ը անջատվեծ չաթից, աշխատում է ֆունկցիան
+        socket.on('disconnect', function () {
             if (addedUser) {
                 --connectedUsers;
 
-                // echo globally that this client has left
+                console.log("left chat user " + socket.username);
+
+                // բոլոր client-ներին բացի ընթացիկին, ասում ենք, որ X user֊ը լքեց chat֊ը
                 socket.broadcast.emit('user left', {
                     username: socket.username,
                     connectedUsers: connectedUsers
