@@ -23,8 +23,9 @@ $(function () {
     var lastTypingTime;
     var $currentInput = $usernameInput.focus();
 
-
     var socket = io();
+
+    console.log(socket);
 
     function addParticipantsMessage(data) {
         var message = '';
@@ -40,6 +41,7 @@ $(function () {
     function setUsername() {
         username = cleanInput($usernameInput.val().trim());
 
+        console.log(username);
 
         // If the username is valid
         if (username) {
@@ -50,16 +52,16 @@ $(function () {
 
             // Tell the server your username
             socket.emit('add user', username);
+
+            console.log("Saying server username=" + username);
         }
     }
 
     // Sends a chat message
-    function sendMessage () {
+    function sendMessage() {
         var message = $inputMessage.val();
-
         // Prevent markup from being injected into the message
         message = cleanInput(message);
-
         // if there is a non-empty message and a socket connection
         if (message && connected) {
             $inputMessage.val('');
@@ -73,15 +75,14 @@ $(function () {
     }
 
     // Log a message
-    function log (message, options) {
+    function log(message, options) {
         var $el = $('<li>').addClass('log').text(message);
         addMessageElement($el, options);
     }
 
     // Adds the visual chat message to the message list
-    function addChatMessage (data, options) {
+    function addChatMessage(data, options) {
         // Don't fade the message in if there is an 'X was typing'
-
         var $typingMessages = getTypingMessages(data);
         options = options || {};
         if ($typingMessages.length !== 0) {
@@ -104,16 +105,15 @@ $(function () {
         addMessageElement($messageDiv, options);
     }
 
-
     // Adds the visual chat typing message
-    function addChatTyping (data) {
+    function addChatTyping(data) {
         data.typing = true;
         data.message = 'is typing';
         addChatMessage(data);
     }
 
     // Removes the visual chat typing message
-    function removeChatTyping (data) {
+    function removeChatTyping(data) {
         getTypingMessages(data).fadeOut(function () {
             $(this).remove();
         });
@@ -124,7 +124,7 @@ $(function () {
     // options.fade - If the element should fade-in (default = true)
     // options.prepend - If the element should prepend
     //   all other messages (default = false)
-    function addMessageElement (el, options) {
+    function addMessageElement(el, options) {
         var $el = $(el);
 
         // Setup default options
@@ -151,12 +151,12 @@ $(function () {
     }
 
     // Prevents input from having injected markup
-    function cleanInput (input) {
+    function cleanInput(input) {
         return $('<div/>').text(input).html();
     }
 
     // Updates the typing event
-    function updateTyping () {
+    function updateTyping() {
         if (connected) {
             if (!typing) {
                 typing = true;
@@ -176,14 +176,14 @@ $(function () {
     }
 
     // Gets the 'X is typing' messages of a user
-    function getTypingMessages (data) {
+    function getTypingMessages(data) {
         return $('.typing.message').filter(function (i) {
             return $(this).data('username') === data.username;
         });
     }
 
     // Gets the color of a username through our hash function
-    function getUsernameColor (username) {
+    function getUsernameColor(username) {
         // Compute hash code
         var hash = 7;
         for (var i = 0; i < username.length; i++) {
@@ -213,7 +213,7 @@ $(function () {
         }
     });
 
-    $inputMessage.on('input', function() {
+    $inputMessage.on('input', function () {
         updateTyping();
     });
 
@@ -235,7 +235,7 @@ $(function () {
     socket.on('login', function (data) {
         connected = true;
         // Display the welcome message
-        var message = "Welcome to Chat – ";
+        var message = "Welcome to Socket.IO Chat – ";
         log(message, {
             prepend: true
         });
@@ -284,4 +284,5 @@ $(function () {
     socket.on('reconnect_error', function () {
         log('attempt to reconnect has failed');
     });
+
 });

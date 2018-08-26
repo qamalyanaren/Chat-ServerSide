@@ -1,23 +1,31 @@
 'use strict';
 
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var ip = require('ip');
+/** Imports */
+const express =  require('express');
+const app = express();
+const ip = require('ip');
+const path = require('path');
+/** end Imports */
 
+/** Variables */
+var port = process.env.PORT || 3333;
+/** end Variables */
 
-var chatServer = express();
+/** ExpressJS block */
+var server = app.listen(port, function(){
+    console.log(`listening at port : ${port}`);
+    // console.log(ip.address());
+});
+/** end ExpressJS block */
 
-chatServer.use(logger('dev'));
-chatServer.use(express.json());
-chatServer.use(express.urlencoded({extended: false}));
-chatServer.use(cookieParser());
+/** Register Static Routes */
+app.use(express.static(path.join(__dirname, '/public')));
+app.use('/css', express.static(path.join(__dirname, '/public/css')));
+app.use('/js', express.static(path.join(__dirname, '/public/js')));
+app.use('/jquery', express.static(path.join(__dirname, '/node_modules/jquery/dist')));
+/** end Static Routes */
 
-chatServer.use(express.static(path.join(__dirname, 'public')));
-chatServer.use('/css',express.static(path.join(__dirname,'public/css')));
-chatServer.use('/js',express.static(path.join(__dirname,'public/js')));
-chatServer.use('/jquery',express.static(path.join(__dirname,'node_modules/jquery/dist')));
-
-
-module.exports = chatServer;
+/** Routes */
+// require('socket/socketio')(server);
+require('./socket/socketio')(server);
+/** end Routes */
